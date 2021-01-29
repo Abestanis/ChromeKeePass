@@ -69,21 +69,18 @@ export default class PageControl
 
     private _createFieldSet(passwordField: HTMLElement): FieldSet | undefined {
         let prevField: JQuery;
+        let prevVisibleField: JQuery;
         let fieldSet: FieldSet | undefined = undefined;
         $('input').each((inputIndex, input) => { // Loop through input fields to find the field before our password field
             const inputType = $(input).attr('type') || 'text'; // Get input type, if none default to "text"
-            if (inputType != 'password') { // We didn't reach our password field?
-                if ($(input).is(':visible') &&
-                    (inputType === 'text' || inputType === 'email' || inputType === 'tel')) {
-                    prevField = $(input); // Is this a possible username field?
+            if (inputType === 'text' || inputType === 'email' || inputType === 'tel') { // We didn't reach our password field?
+                prevField = $(input); // Is this a possible username field?
+                if ($(input).is(':visible')) {
+                    prevVisibleField = $(input);
                 }
-            } else if ($(input).is($(passwordField))) { // Found our password field?
-                if (prevField) { // Is there a previous field? Than this should be our username field
-                    fieldSet = new FieldSet(this, $(passwordField), prevField);
-                } else if ($(input).is(':visible')) {
-                    // We didn't find the username field. Check if it's actually visible
-                    fieldSet = new FieldSet(this, $(passwordField));
-                } // Else we didn't find a visible username of password field
+            } else if (inputType === 'password' && $(input).is($(passwordField))) { // Found our password field?
+                const usernameField = $(input).is(':visible') ? prevVisibleField : prevField;
+                fieldSet = new FieldSet(this, $(passwordField), usernameField);
                 return false; // Break the each() loop
             }
         });
