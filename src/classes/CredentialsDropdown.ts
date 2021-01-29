@@ -153,7 +153,8 @@ export default class CredentialsDropdown {
             const items: JQuery[] = [];
             credentials.forEach((credential) => {
                 items.push(
-                    $('<div>').data('credential', credential).addClass(styles.item).append(
+                    $('<div>').data('credential', credential).addClass(styles.item).css(
+                        {'padding': `${this._pageControl.settings.theme.dropdownItemPadding}px`}).append(
                         $('<div>').addClass(styles.primaryText).text(credential.title)
                     ).append(
                         $('<div>').text(credential.username)
