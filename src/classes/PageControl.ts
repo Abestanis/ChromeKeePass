@@ -29,67 +29,40 @@ export default class PageControl
     }
 
     /** Try to detect credentials fields */
-    public detectFields()
-    {
-        const fieldSets: FieldSet[] = [];
-        let passwordFields: JQuery = $('input[type="password"]');
-
-        if(passwordFields.length) // Found some password fields?
-        {
-            passwordFields.each((passwordIndex, passwordField)=>{ // Loop through password fields
-                let fieldSet = this._createFieldSet(passwordField);
-                if (fieldSet !== undefined) {
-                    fieldSets.push(fieldSet);
-                }
-            });
-        }
-
-        // Remember the fields we've found
-        this._fieldSets = fieldSets;
-        this._findCredentials();
-        this._attachEscapeEvent();
+    public detectFields() {
+        this.detectNewFields($('input'))
     }
 
     /**
-     * Try to detect new credentials fields
-     * @param passwordFields A list of changed or added password fields.
+     * Try to detect new credentials fields.
+     * @param inputFields A list of changed or added input fields.
      */
-    public detectNewFields(passwordFields: JQuery) {
-        passwordFields.each((passwordIndex, passwordField) => { // Loop through password fields
-            if (!this._fieldSets.some((fieldSet) => fieldSet.passwordField.index() !== passwordIndex)) {
-                let fieldSet = this._createFieldSet(passwordField);
-                if (fieldSet !== undefined) {
-                    this._fieldSets.push(fieldSet);
+    public detectNewFields(inputFields: JQuery) {
+        let prevField: JQuery;
+        let prevVisibleField: JQuery;
+        inputFields.each((_, input) => { // Loop through all input fields
+            const inputType = $(input).attr('type') || 'text'; // Get input type, if none default to "text"
+            if (inputType === 'text' || inputType === 'email' || inputType === 'tel') { // A possible username field
+                prevField = $(input);
+                if ($(input).is(':visible')) {
+                    prevVisibleField = $(input);
                 }
+            } else if (inputType === 'password'
+                && !this._fieldSets.some((fieldSet) => fieldSet.passwordField.get(0) === input)) {
+                // Found a new password field
+                const usernameField = $(input).is(':visible') ? prevVisibleField : prevField;
+                this._fieldSets.push(new FieldSet(this, $(input), usernameField));
+            } else if (inputType === 'password' && this._fieldSets.some((fieldSet) => fieldSet.passwordField.get(0) === input)) {
+                console.log('Skipped');
             }
         });
         this._findCredentials();
         this._attachEscapeEvent();
-    }
-
-    private _createFieldSet(passwordField: HTMLElement): FieldSet | undefined {
-        let prevField: JQuery;
-        let prevVisibleField: JQuery;
-        let fieldSet: FieldSet | undefined = undefined;
-        $('input').each((inputIndex, input) => { // Loop through input fields to find the field before our password field
-            const inputType = $(input).attr('type') || 'text'; // Get input type, if none default to "text"
-            if (inputType === 'text' || inputType === 'email' || inputType === 'tel') { // We didn't reach our password field?
-                prevField = $(input); // Is this a possible username field?
-                if ($(input).is(':visible')) {
-                    prevVisibleField = $(input);
-                }
-            } else if (inputType === 'password' && $(input).is($(passwordField))) { // Found our password field?
-                const usernameField = $(input).is(':visible') ? prevVisibleField : prevField;
-                fieldSet = new FieldSet(this, $(passwordField), usernameField);
-                return false; // Break the each() loop
-            }
-        });
-        return fieldSet;
     }
 
     private _attachEscapeEvent()
     {
-        if(this._installedEscapeHandler || !this._fieldSets || this._fieldSets.length === 0) {
+        if (this._installedEscapeHandler || this._fieldSets.length === 0) {
             return; // We're not going to listen to key presses if we don't need them
         }
         this._installedEscapeHandler = true;
@@ -102,8 +75,8 @@ export default class PageControl
 
     private _findCredentials()
     {
-        if(this._fieldSets.length) // We should only look for credentials if we found input fields for it
-        {
+        if (this._foundCredentials === undefined && this._fieldSets.length) {
+            // We should only look for credentials if we found input fields for it
             Client.findCredentials().then((credentials)=>{
                 this._foundCredentials = credentials;
                 this._fieldSets.forEach((fieldSet) => fieldSet.receivedCredentials());

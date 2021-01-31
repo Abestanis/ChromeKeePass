@@ -9,9 +9,9 @@ $(()=>{
         const observer = new MutationObserver(function (mutations) {
             mutations.forEach(function (mutation) {
                 for (let node of mutation.addedNodes) {
-                    let passwordFields = $(node).find('input[type="password"]');
-                    if (passwordFields.length) {
-                        setTimeout(() => pageControl.detectNewFields(passwordFields), 100);
+                    let inputFields = $(node).find('input');
+                    if (inputFields.length) {
+                        setTimeout(() => pageControl.detectNewFields(inputFields), 100);
                     }
                 }
             });
