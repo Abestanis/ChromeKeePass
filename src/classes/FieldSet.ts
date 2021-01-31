@@ -270,7 +270,10 @@ export default class FieldSet
         }
         this._controlField = newControlField;
         if (this._controlField) {
-            this._controlField.attr('autocomplete', 'chrome-off');
+            const inputType = this._controlField.attr('type') || '';
+            const offValue = inputType === 'email' || inputType === 'tel' || inputType === 'password' ?
+                'chrome-off' : 'off';
+            this._controlField.attr('autocomplete', offValue);
             for (let callbackName in this._LISTENER_FUNCTIONS) {
                 // noinspection JSUnfilteredForInLoop
                 this._controlField.on(callbackName, this._LISTENER_FUNCTIONS[callbackName]);
