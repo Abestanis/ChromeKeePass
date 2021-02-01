@@ -29,10 +29,11 @@ export default class CredentialsDropdown {
     }
 
     /**
-     * @return Whether or not the dropdown currently has focus (and is opened).
+     * @return Whether or not the event caused an element in the dropdown to gain focus.
      */
-    public hasFocus(): boolean {
-        return this._dropdown !== undefined && this._dropdown.is(':focus');
+    public hasGainedFocus(event: JQuery.FocusOutEvent): boolean {
+        return this._dropdown !== undefined && event.relatedTarget instanceof HTMLElement &&
+            this._dropdown.has(event.relatedTarget).length != 0;
     }
 
     /**
@@ -84,9 +85,9 @@ export default class CredentialsDropdown {
                 $('<img>').addClass(styles.logo).attr('src', chrome.extension.getURL('images/icon48.png'))
                     .attr('alt', ''),
                 'ChromeKeePass',
-                $('<img>').attr('src', chrome.extension.getURL('images/gear.png'))
+                $('<img>').attr('src', chrome.extension.getURL('images/gear.png')).attr('tabindex', '0')
                     .attr('alt', 'Open Settings').attr('title', 'Open settings').css({cursor: 'pointer'})
-                    .on('click', CredentialsDropdown._openOptionsWindow.bind(this)),
+                    .on('click', this._openOptionsWindow.bind(this)),
                 // $('<img>').attr('src', chrome.extension.getURL('images/key.png')).attr('title', 'Generate password').css({cursor: 'pointer'}),
             ];
             const footer = $('<div>').addClass(styles.footer).append(...footerItems);
@@ -154,7 +155,7 @@ export default class CredentialsDropdown {
             const items: JQuery[] = [];
             credentials.forEach((credential) => {
                 items.push(
-                    $('<div>').data('credential', credential).addClass(styles.item).css(
+                    $('<div>').data('credential', credential).addClass(styles.item).attr('tabindex', '0').css(
                         {'padding': `${this._pageControl.settings.theme.dropdownItemPadding}px`}).append(
                         $('<div>').addClass(styles.primaryText).text(credential.title)
                     ).append(
@@ -171,8 +172,9 @@ export default class CredentialsDropdown {
     }
 
     /** Open the extension's option window. */
-    private static _openOptionsWindow() {
+    private _openOptionsWindow() {
         Client.openOptions();
+        this.close();
     }
 
     /** Handle a click on a credential field. */
