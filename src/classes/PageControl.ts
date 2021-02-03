@@ -52,8 +52,6 @@ export default class PageControl
                 // Found a new password field
                 const usernameField = $(input).is(':visible') ? prevVisibleField : prevField;
                 this._fieldSets.push(new FieldSet(this, $(input), usernameField));
-            } else if (inputType === 'password' && this._fieldSets.some((fieldSet) => fieldSet.passwordField.get(0) === input)) {
-                console.log('Skipped');
             }
         });
         this._findCredentials();
