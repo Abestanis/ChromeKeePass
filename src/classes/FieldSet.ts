@@ -235,7 +235,8 @@ export default class FieldSet
             const inputType = this._controlField.attr('type') || '';
             // See https://stackoverflow.com/questions/15738259/disabling-chrome-autofill
             const isAutofillField = inputType === 'email' || inputType === 'tel' || inputType === 'password'
-                || this._controlField.attr('name')?.toLowerCase()?.includes('email');
+                || this._controlField.attr('name')?.toLowerCase()?.includes('email')
+                || this._controlField.attr('id')?.toLowerCase()?.includes('email');
             this._controlField.attr('autocomplete', isAutofillField ? 'chrome-off' : 'off');
             for (let callbackName in this._LISTENER_FUNCTIONS) {
                 // noinspection JSUnfilteredForInLoop
